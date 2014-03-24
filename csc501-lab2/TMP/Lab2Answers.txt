@@ -1,0 +1,94 @@
+
+1.1 The priority inversion problem could cause that a higher-priority process needs to 
+	wait for the completion of a lower-priority process.
+	1) Priority inheritance is one approach to address this issue. Please give another approach and briefly describe its idea.
+	A-1.1 ) The another approach for solving this is Priority Ceiling protocol. In this protocol, like Priority Inheritance protocol
+	we set the priority of the process which has acquired the process. But apart from Priority Inheritance which depends on the priority of processes which comne in queue for a resourse.
+	In this we have a limit of priority that a process can attain. In this approach, we give max_priority i.e, the max priority which is genrally the max allowed priority which can be given to a process.
+	In this way I can deal with priority inversion as process which has acquired this process is highest priority.
+	
+	
+	
+1.2	Design a test case to show that your approach can address the priority inversion problem. 
+	You should compare the results that derived from the original XINU implementation (use semaphore) 
+	and that derived from your implementation (use readers/writer locks). Put your results in Lab2Answers.txt 
+	and your test case program (name it task1.c) in both ./sys and ./TMP
+	A1.2)
+	We get the following output when we run our testcase implementation:
+	___________________________________________________________________________________________________________
+	Please Input:
+3
+
+Test 3: test the basic priority inheritence
+lck1: 49          lck2: 48-start reader B, then sleep 1s. reader B(prio 30) bloc                                                                                        ked on the lock
+  reader B: to acquire lock 47
+  reader B: acquired lock
+-start writer, then sleep 1s. lock granted to write (prio 20)
+  writer C: to acquire lock  46     49
+  writer C: acquired lock, sleep 10s
+
+Make 2 with 48 wait on 46-start reader A, then sleep 1s. reader A(prio 25) block                                                                                        ed on the lock
+  reader A: to acquire lock 48
+
+Make 1 with 49 wait on 481: ASSERT PASS
+2: ASSERT PASS
+3: ASSERT PASS
+  reader B: to release lock
+
+
+Acquired both locks, lck2 48
+
+  writer C: to release lock
+Test 3 OK
+
+
+SEMAPHORE
+
+
+Test 3: test the basic priority inheritance
+lck1: 49          lck2: 48-start reader B, then sleep 1s. reader B(prio 30) blocked on the lock
+  reader B: to acquire lock 44
+  reader B: acquired lock
+-start writer, then sleep 1s. lock granted to write (prio 20)
+  writer C: to acquire lock  43
+
+Make 2 with 49 wait on 43-start reader A, then sleep 1s. reader A(prio 25) blocked on the lock
+  reader A: to acquire lock 45
+  reader A: acquired lock
+4: ASSERT FAIL
+5: ASSERT PASS
+6: ASSERT PASS
+  reader B: to release lock
+  reader A: to release lock
+Test 3 OK
+_______________________________________________________________________________________
+here, we see that in first all asserts have passed but in the next one we see that one inheritance has failed showing that priority inheritance is not taking place in semaphore implementation.
+	Also, more importantly, we see that in first one: we get the process locks acquire as:
+	reader B: acquired lock
+	writer C: acquired lock, sleep 10s
+	
+	and in semaphore implementation:
+	
+	reader B: acquired lock
+	 reader A: acquired lock
+	In implementation of semaphore it does not acquires writer C. which is highest priority process 40.
+	
+	
+2.	Synchronization is a quite complex issue in operating systems. To show your understanding 
+about process synchronization, you are asked to point out a reader/writer synchronization issue 
+in this pseudo-code: task2_sync_issue.c. Multiple reader threads can execute this code concurrently 
+by calling do_update. All the variables starting with global_ are global variables. 
+You are asked to describe the potential issue caused by the incorrect synchronization 
+and point out at least one possible thread interleaving that would trigger the problem. 
+Put your answer in Lab2Answers.txt mentioned above.
+
+A2) In the given Task2_sync_issue.c, we are given that do_update is called many times by multiple threads. 
+We see that when we call do_update, we call LOCK_READER which returns 1 if we are not granted lock and 0 otherwise.
+If we get access to lock, then we make changes to buffer. There are a lot of Synchronization issues in this code.
+1. As, we are not disabling interrupts, we will be facing context switches. 
+Thus, if a process is currently working on a buffer and other process comes and this processes is context switched.
+ Thus, when the switched process comes in system, the state of buffer has been changed which might lead to system issues.
+
+2.Multiple processes concurrently edit buffer, this leaves a chaotic system. 
+As buffer is written by a process and when it saves it, the next moment buffer might be changed. 
+This leads to concurrency and synchronization issues.
